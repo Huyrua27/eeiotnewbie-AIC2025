@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta name="Multimeda Retrieval" content="Enhanced Multimodal Video Retrieval System - HCMUT">
+  <meta name="description" content="A comprehensive multimodal retrieval framework integrating query expansion and cross-modal temporal event retrieval for video search">
+  <meta name="keywords" content="Video Retrieval, Multimodal Search, Temporal Events, Query Expansion, CLIP, BEiT3">
+  <meta name="author" content="Van-Thinh Vo, Minh-Khoi Nguyen">
+  <meta name="robots" content="index, follow">
+  <meta name="language" content="English">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="HCMUT EE Machine Learning & IoT Lab">
+  <meta property="og:title" content="Enhanced Multimodal Video Retrieval System">
+  <meta property="og:description" content="A comprehensive multimodal retrieval framework integrating query expansion and cross-modal temporal event retrieval">
+
+  <title>Enhanced Multimodal Video Retrieval System | HCMUT</title>
+
+  <link rel="icon" type="image/x-icon" href="static/images/mliot_logo.ico">
+  <link rel="apple-touch-icon" href="static/images/favicon.ico">
+
+  <link rel="stylesheet" href="static/css/bulma.min.css">
+  <link rel="stylesheet" href="static/css/index.css">
+
+  <link rel="preload" href="static/css/bulma-carousel.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="static/css/bulma-slider.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="static/css/fontawesome.all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+
+  <noscript>
+    <link rel="stylesheet" href="static/css/bulma-carousel.min.css">
+    <link rel="stylesheet" href="static/css/bulma-slider.min.css">
+    <link rel="stylesheet" href="static/css/fontawesome.all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  </noscript>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script defer src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="https://documentcloud.adobe.com/view-sdk/main.js"></script>
+  <script defer src="static/js/fontawesome.all.min.js"></script>
+  <script defer src="static/js/bulma-carousel.min.js"></script>
+  <script defer src="static/js/bulma-slider.min.js"></script>
+  <script defer src="static/js/index.js"></script>
+
+  <style>
+    .method-section {
+      margin-top: 3rem;
+      margin-bottom: 3rem;
+    }
+    
+    .method-subsection {
+      margin-top: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .method-image {
+      margin: 2rem auto;
+      text-align: center;
+      max-width: 900px;
+    }
+    
+    .method-image img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .image-caption {
+      margin-top: 1rem;
+      font-style: italic;
+      color: #666;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    
+    .result-table {
+      margin: 2rem 0;
+      overflow-x: auto;
+    }
+    
+    .result-table table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .result-table th,
+    .result-table td {
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+    
+    .result-table th {
+      background-color: #3273dc;
+      color: white;
+      font-weight: 600;
+    }
+    
+    .result-table tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+
+    /* Carousel Styles */
+    .carousel-container {
+      position: relative;
+      max-width: 900px;
+      margin: 2rem auto;
+      overflow: hidden;
+    }
+
+    .carousel-wrapper {
+      display: flex;
+      transition: transform 0.5s ease-in-out;
+    }
+
+    .carousel-slide {
+      min-width: 100%;
+      box-sizing: border-box;
+    }
+
+    .carousel-slide img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .carousel-button {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: rgba(50, 115, 220, 0.8);
+      color: white;
+      border: none;
+      padding: 1rem;
+      cursor: pointer;
+      font-size: 1.5rem;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.3s;
+      z-index: 10;
+    }
+
+    .carousel-button:hover {
+      background-color: rgba(50, 115, 220, 1);
+    }
+
+    .carousel-button.prev {
+      left: 10px;
+    }
+
+    .carousel-button.next {
+      right: 10px;
+    }
+
+    .carousel-indicators {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 1rem;
+    }
+
+    .carousel-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background-color: #ddd;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .carousel-indicator.active {
+      background-color: #3273dc;
+    }
+
+    .carousel-caption {
+      text-align: center;
+      margin-top: 1rem;
+      font-style: italic;
+      color: #666;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      padding: 0 1rem;
+    }
+  </style>
+</head>
+
+<body>
+
+  <button class="scroll-to-top" onclick="scrollToTop()" title="Scroll to top" aria-label="Scroll to top">
+    <i class="fas fa-chevron-up"></i>
+  </button>
+
+  <main id="main-content">
+    <section class="hero">
+      <div class="hero-body">
+        <div class="container is-max-desktop">
+          <div class="columns is-centered">
+            <div class="column has-text-centered">
+              <h1 class="title is-1 publication-title">Enhanced Multimodal Video Retrieval System:
+                Integrating Query Expansion and Cross-modal
+                Temporal Event Retrieval</h1>
+              <div class="is-size-5 publication-authors">
+                <span class="author-block">
+                  <a href="https://orcid.org/0009-0009-4815-1397" target="_blank">Van-Thinh Vo</a>,</span>
+                <span class="author-block">
+                  <a href="https://orcid.org/0009-0000-0813-6576" target="_blank">Minh-Khoi Nguyen</a>,</span>
+                <span class="author-block">
+                  <a href="https://orcid.org/0009-0004-0535-5879" target="_blank">Minh-Huy Tran</a>,</span>
+                <span class="author-block"><a href="https://orcid.org/0009-0000-3966-1795" target="_blank">Anh-Quan Nguyen-Tran</a>,</span>
+                <span class="author-block"><a href="https://orcid.org/0009-0008-8732-7079" target="_blank">Duy-Tan Nguyen</a>,</span>
+                <span class="author-block"><a href="https://orcid.org/0000-0003-4300-491X" target="_blank">Loi Nguyen Khanh</a>,</span>
+                <span class="author-block"><a href="https://orcid.org/0009-0007-0217-5807" target="_blank">Anh-Minh Phan</a></span>
+              </div>
+
+              <div class="is-size-5 publication-authors">
+                <span class="author-block">HCMUT EE Machine Learning & IoT Lab - HCMUT<br>THE 14TH INTERNATIONAL SYMPOSIUM ON INFORMATION AND COMMUNICATION TECHNOLOGY - 2025</span>
+              </div>
+
+              <div class="column has-text-centered">
+                <div class="publication-links">
+                  <span class="link-block">
+                    <a href="https://github.com/ThinhVan27/AIC-2025" target="_blank"
+                      class="external-link button is-normal is-rounded is-dark">
+                      <span class="icon">
+                        <i class="fab fa-github"></i>
+                      </span>
+                      <span>Code</span>
+                    </a>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Paper abstract -->
+    <section class="section hero is-light">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered has-text-centered">
+          <div class="column is-four-fifths">
+            <h2 class="title is-3">Abstract</h2>
+            <div class="content has-text-justified">
+              <p>
+                Multimedia information retrieval from videos remains a challenging problem. While recent systems have advanced multimodal search through semantic, object, and OCR queries - and can retrieve temporally consecutive scenes - they often rely on a single query modality for an entire sequence, limiting robustness in complex temporal contexts. To overcome this, we propose a cross-modal temporal event retrieval framework that enables different query modalities to describe distinct scenes within a sequence. Another key contribution is the Kernel Density Gaussian Mixture Thresholding (KDE-GMM) algorithm, which adaptively determines decision thresholds for scene transition and slide change detection, ensuring optimal keyframe selection. These extracted keyframes act as compact, high-quality visual exemplars that retain each segment's semantic essence, improving retrieval precision and efficiency. Additionally, the system incorporates a large language model (LLM) to refine and expand user queries, enhancing overall retrieval performance. The proposed system's effectiveness and robustness were demonstrated through its strong results in the Ho Chi Minh AI Challenge 2025.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- End paper abstract -->
+
+    <!-- Method Section -->
+    <section class="section method-section">
+      <div class="container is-max-desktop">
+        <h2 class="title is-2 has-text-centered">Method</h2>
+        
+        <!-- Data Preprocessing -->
+        <div class="method-subsection">
+          <h3 class="title is-4">Data Preprocessing</h3>
+          
+          <div class="method-image">
+            <img src="static/images/preprocessing.png" alt="Data Preprocessing Pipeline">
+            <p class="image-caption">Overview of the data preprocessing pipeline. Raw videos are processed to extract representative keyframes, which are then analyzed through BEiT3/CLIP feature extraction, OCR, object detection, and color detection modules to generate structured metadata.</p>
+          </div>
+        </div>
+
+        <!-- System Overview -->
+        <div class="method-subsection">
+          <h3 class="title is-4">System Overview</h3>
+          
+          <div class="method-image">
+            <img src="static/images/pipeline.png" alt="Retrieval System Overview">
+            <p class="image-caption">Overview of the retrieval system featuring two main search engines: Embedding-based Search and Metadata-based Search, integrated to handle multimodal queries and temporal event retrieval.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- End Method Section -->
+
+    <!-- UI Overview Section with Carousel -->
+    <section class="section">
+      <div class="container is-max-desktop">
+        <h2 class="title is-2 has-text-centered">User Interface</h2>
+        
+        <div class="method-subsection">
+          <div class="carousel-container">
+            <button class="carousel-button prev" onclick="moveSlide('ui-carousel', -1)">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            
+            <div class="carousel-wrapper" id="ui-carousel">
+              <div class="carousel-slide">
+                <img src="static/images/ui_overview.png" alt="User Interface Overview">
+              </div>
+              <div class="carousel-slide">
+                <img src="static/images/results_display.png" alt="Results Display Interface">
+              </div>
+            </div>
+            
+            <button class="carousel-button next" onclick="moveSlide('ui-carousel', 1)">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+          
+          <div class="carousel-indicators" id="ui-indicators">
+            <span class="carousel-indicator active" onclick="goToSlide('ui-carousel', 0)"></span>
+            <span class="carousel-indicator" onclick="goToSlide('ui-carousel', 1)"></span>
+          </div>
+          
+          <div class="carousel-caption" id="ui-caption">
+            User interface with three main sections: (A) Query input and search parameters for embedding-based search, (B) Metadata search interface with 7x7 grid for object placement and logical operators, and (C) Results display with pagination and video player controls.
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- End UI Overview Section -->
+
+    <!-- Results Section -->
+    <section class="section hero is-light">
+      <div class="container is-max-desktop">
+        <h2 class="title is-2 has-text-centered">Results</h2>
+        
+        <div class="content has-text-justified">
+          <h3 class="title is-4">Performance on Ho Chi Minh AI Challenge 2025</h3>
+          <p>
+            Our system (team name: EEIoT_newbie) achieved competitive results across three main tasks in the final round, demonstrating the effectiveness of our multimodal retrieval framework.
+          </p>
+          
+          <div class="result-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Task</th>
+                  <th>Description</th>
+                  <th>Performance</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>KIS</strong></td>
+                  <td>Known-Item Search</td>
+                  <td>Strong performance</td>
+                </tr>
+                <tr>
+                  <td><strong>QA</strong></td>
+                  <td>Question Answering</td>
+                  <td>Competitive results</td>
+                </tr>
+                <tr>
+                  <td><strong>TRAKE</strong></td>
+                  <td>Temporal Event Retrieval</td>
+                  <td>Effective retrieval</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 class="title is-4">Demo Test Cases</h3>
+          
+          <div class="method-subsection">
+            <div class="carousel-container">
+              <button class="carousel-button prev" onclick="moveSlide('demo-carousel', -1)">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              
+              <div class="carousel-wrapper" id="demo-carousel">
+                <div class="carousel-slide">
+                  <img src="static/images/casestudy_ag.jpg" alt="Demo Test Case 1">
+                </div>
+                <div class="carousel-slide">
+                  <img src="static/images/multimodal.png" alt="Demo Test Case 2">
+                </div>
+                <div class="carousel-slide">
+                  <img src="static/images/fixstudycase.jpg" alt="Demo Test Case 3">
+                </div>
+              </div>
+              
+              <button class="carousel-button next" onclick="moveSlide('demo-carousel', 1)">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+            
+            <div class="carousel-indicators" id="demo-indicators">
+              <span class="carousel-indicator active" onclick="goToSlide('demo-carousel', 0)"></span>
+              <span class="carousel-indicator" onclick="goToSlide('demo-carousel', 1)"></span>
+              <span class="carousel-indicator" onclick="goToSlide('demo-carousel', 2)"></span>
+            </div>
+            
+            <div class="carousel-caption" id="demo-caption">
+              Query augmentation impact: comparison of retrieval results without and with Gemini-based query expansion, showing improved accuracy and relevance.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- End Results Section -->
+
+    <!--BibTex citation -->
+    <section class="section" id="BibTeX">
+      <div class="container is-max-desktop content">
+        <div class="bibtex-header">
+          <h2 class="title">BibTeX</h2>
+          <button class="copy-bibtex-btn" onclick="copyBibTeX()" title="Copy BibTeX to clipboard">
+            <i class="fas fa-copy"></i>
+            <span class="copy-text">Copy</span>
+          </button>
+        </div>
+        <pre id="bibtex-code"><code>@inproceedings{vo2025enhanced,
+  title={Enhanced Multimodal Video Retrieval System: Integrating Query Expansion and Cross-modal Temporal Event Retrieval},
+  author={Vo, Van-Thinh and Nguyen, Minh-Khoi and Tran, Minh-Huy and Nguyen-Tran, Anh-Quan and Nguyen, Duy-Tan and Khanh, Loi Nguyen and Phan, Anh-Minh},
+  booktitle={Proceedings of the 14th International Symposium on Information and Communication Technology (SOICT)},
+  year={2025},
+  organization={Springer}
+}</code></pre>
+      </div>
+    </section>
+    <!--End BibTex citation -->
+
+    <footer class="footer">
+      <div class="container">
+        <div class="columns is-centered">
+          <div class="column is-8">
+            <div class="content">
+              <p>
+                This page was built using the <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank">Academic Project Page Template</a> which was adopted from the <a href="https://nerfies.github.io" target="_blank">Nerfies</a> project page.
+                You are free to borrow the source code of this website, we just ask that you link back to this page in the footer. <br> This website is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+  </main>
+
+  <script>
+    // Carousel data
+    const carouselData = {
+      'ui-carousel': {
+        currentSlide: 0,
+        captions: [
+          'User interface with three main sections: (A) Query input and search parameters for embedding-based search, (B) Metadata search interface with 7x7 grid for object placement and logical operators, and (C) Results display with pagination and video player controls.',
+          'Results display interface showing retrieved video segments with video ID, timestamp, frame index, and interactive controls for inspection and playback.'
+        ]
+      },
+      'demo-carousel': {
+        currentSlide: 0,
+        captions: [
+          'Query augmentation impact: comparison of retrieval results without and with Gemini-based query expansion, showing improved accuracy and relevance.',
+          'Multimodal retrieval example: combining semantic search with OCR-based filtering to precisely locate specific lecture content.',
+          'Cross-modal temporal event retrieval: demonstrating the system\'s ability to handle sequential queries with different modalities across temporal scenes.'
+        ]
+      }
+    };
+
+    function moveSlide(carouselId, direction) {
+      const carousel = carouselData[carouselId];
+      const wrapper = document.getElementById(carouselId);
+      const totalSlides = wrapper.children.length;
+      
+      carousel.currentSlide += direction;
+      
+      if (carousel.currentSlide < 0) {
+        carousel.currentSlide = totalSlides - 1;
+      } else if (carousel.currentSlide >= totalSlides) {
+        carousel.currentSlide = 0;
+      }
+      
+      updateCarousel(carouselId);
+    }
+
+    function goToSlide(carouselId, index) {
+      carouselData[carouselId].currentSlide = index;
+      updateCarousel(carouselId);
+    }
+
+    function updateCarousel(carouselId) {
+      const carousel = carouselData[carouselId];
+      const wrapper = document.getElementById(carouselId);
+      const indicatorsId = carouselId.replace('-carousel', '-indicators');
+      const captionId = carouselId.replace('-carousel', '-caption');
+      
+      // Update slide position
+      wrapper.style.transform = `translateX(-${carousel.currentSlide * 100}%)`;
+      
+      // Update indicators
+      const indicators = document.getElementById(indicatorsId).children;
+      for (let i = 0; i < indicators.length; i++) {
+        indicators[i].classList.toggle('active', i === carousel.currentSlide);
+      }
+      
+      // Update caption
+      document.getElementById(captionId).textContent = carousel.captions[carousel.currentSlide];
+    }
+
+    function scrollToTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function copyBibTeX() {
+      const bibtex = document.getElementById('bibtex-code').textContent;
+      navigator.clipboard.writeText(bibtex).then(() => {
+        const btn = document.querySelector('.copy-bibtex-btn .copy-text');
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+      });
+    }
+
+    window.addEventListener('scroll', function() {
+      const scrollBtn = document.querySelector('.scroll-to-top');
+      if (window.pageYOffset > 300) {
+        scrollBtn.style.display = 'block';
+      } else {
+        scrollBtn.style.display = 'none';
+      }
+    });
+
+    // Keyboard navigation for carousels
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'ArrowLeft') {
+        moveSlide('ui-carousel', -1);
+        moveSlide('demo-carousel', -1);
+      } else if (e.key === 'ArrowRight') {
+        moveSlide('ui-carousel', 1);
+        moveSlide('demo-carousel', 1);
+      }
+    });
+  </script>
+
+</body>
+
+</html>
